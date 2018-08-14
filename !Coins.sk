@@ -1,0 +1,58 @@
+function Coins(type: text, p: player, int: integer):
+	if {_type} = "add":
+		add {_int} to {Coins.%{_p}%}
+	if {_type} = "set":
+		set {Coins.%{_p}%} to {_int}
+	
+	set yaml value "Coins" from file "..\..\..\..\..\Datenbank\Servers\LOBBY\Players\%{_p}%\Coins.yml" to "%{Coins.%{_p}%}%" parsed as integer
+	set {Coins.%{_p}%} to yaml value "Coins" from file "..\..\..\..\..\Datenbank\Servers\LOBBY\Players\%{_p}%\Coins.yml"
+	set {Coins.%{_p}%} to {Coins.%{_p}%} parsed as integer
+
+function getCoins(p: player) :: integer:
+	set {Coins.%{_p}%} to yaml value "Coins" from file "..\..\..\..\..\Datenbank\Servers\LOBBY\Players\%{_p}%\Coins.yml"
+	set yaml value "Coins" from file "..\..\..\..\..\Datenbank\Servers\LOBBY\Players\%{_p}%\Coins.yml" to "%{Coins.%{_p}%}%" parsed as integer
+	return {Coins.%{_p}%}
+
+command /coins [<offline player>]:
+	trigger:
+		if arg-1 is set:
+			set {Coins.%arg-1%} to getCoins(arg-1)
+			if file "..\..\Datenbank\Servers\LOBBY\Players\%arg-1%\Coins.yml" does not exist:
+				send "&9Coins> &c%arg-1% hat bis jetzt den Server noch nie betreten!"
+				stop
+			else:
+				set {Coins.%arg-1%} to yaml value "Coins" from file "..\..\..\..\..\Datenbank\Servers\LOBBY\Players\%arg-1%\Coins.yml"
+				set {_Coins.%arg-1%} to splitCoins("%{Coins.%arg-1%}%")
+				send "&9Coins> &e%arg-1% &7hat momentan &e%{_Coins.%arg-1%}% Coins &7übrig!"
+		else:
+			set {Coins.%player%} to getCoins(player)
+			set {_Coins.%player%} to splitCoins("%{Coins.%player%}%")
+			send "&9Coins> &7Du hast momentan noch &e%{_Coins.%player%}% Coins &7übrig!"
+
+command /setcoins [<offline player>] <integer>:
+	permission: op
+	trigger:
+		if arg-1 is set:
+			Coins("set", arg-1, arg-2)
+			set {_Coins.%arg-1%} to splitCoins("%{Coins.%arg-1%}%")
+			send "&9Coins> &e%arg-1% &7hat nun &e%{_Coins.%arg-1%}% Coins&7!"
+		else:
+			Coins("set", player, arg-2)
+			set {_Coins.%player%} to splitCoins("%{Coins.%player%}%")
+			send "&9Coins> &7Du hast nun &e%{_Coins.%player%}% Coins&7!"
+
+command /addcoins [<offline player>] <integer>:
+	permission: op
+	trigger:
+		if arg-1 is set:
+			Coins("add", arg-1, arg-2)
+			set {_Coins.%arg-1%} to splitCoins("%{Coins.%arg-1%}%")
+			send "&9Coins> &e%arg-1% &7hat nun &e%{_Coins.%arg-1%}% Coins&7!"
+		else:
+			Coins("add", player, arg-2)
+			set {_Coins.%player%} to splitCoins("%{Coins.%player%}%")
+			send "&9Coins> &7Du hast nun &e%{_Coins.%player%}% Coins&7!"
+
+on join:
+	wait 5 ticks
+	set {Coins.%player%} to getCoins(player)
